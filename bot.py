@@ -16,11 +16,17 @@ def keyboard(menu):
         markup.add(types.KeyboardButton(item))
     return markup
 
-
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, f'<i>Привет!Я бот валютный конвектор!Напиши выражение вида:</i> <b>[int] [VAL1] в [VAL2] </b> \n<i>Пример:\n</i> <b>200 RUB в USD</b>', 
-                 reply_markup=keyboard(main_menu), parse_mode="html")
+    username = message.from_user.username
+    name = message.from_user.first_name
+    bot.reply_to(message, f'<i>Привет,<b>{name} AKA {username}</b>!Я бот валютный конвектор!Напиши выражение вида:</i> <b>[int] [VAL1] в [VAL2] </b> \n<i>Пример:\n</i> <b>200 RUB в USD</b>', 
+            reply_markup=keyboard(main_menu), parse_mode="html")
+    
+    document = open('currency_info.txt','rb')
+    bot.send_document(message.chat.id, document)
+    
+
 
 @bot.message_handler(content_types=['text'])
 def get_information(message):
@@ -46,14 +52,14 @@ def get_information(message):
                 to_currency = words[3]
                 convert_currency(message,amount, from_currency, to_currency)
             else:
-                bot.send_message(message.chat.id, f'<i>Сообщение не корректно😢,напишите согласное шаблона:</i> \n<b> [int] [VAL1] в [VAL2] </b>\n <i>Пример:</i>\n <b>200 RUB в USD</b> ', parse_mode='HTML')
+                bot.send_message(message.chat.id, f'<i>Сообщение не корректно,напишите согласно шаблона:</i> \n<b> [int] [VAL1] в [VAL2] </b>\n <i>Пример:</i>\n <b>200 RUB в USD</b> ', parse_mode='HTML')
 
 def convert_currency( message,amount = 100, from_currency = 'RUB', to_currency = 'USD'):
     r = requests.get(f"{api_url}{from_currency}")
     if r.status_code == 200:
         current_cource = r.json()['conversion_rates'][to_currency]
         answer = amount * current_cource
-        bot.send_message(message.chat.id, f'<b>Мы все посчитали😎:</b> <b><i>{amount} {from_currency}</i></b> это <i><b>{answer:.4f} {to_currency}</b></i>', parse_mode='HTML')
+        bot.send_message(message.chat.id, f'<i>Мы все посчитали😎:</i> <b><i>{amount} {from_currency}</i></b> это <i><b>{answer:.4f} {to_currency}</b></i>', parse_mode='HTML')
     else:
         bot.send_message(message.chat.id, f"Произошла ошибка запроса, скорее всего ошибка в API.Попробуйте обратиться позже!Ошибка:{r.status_code}")
 
